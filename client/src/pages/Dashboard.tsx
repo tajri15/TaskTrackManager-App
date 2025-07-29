@@ -92,7 +92,7 @@ export default function Dashboard() {
       {/* Footer */}
       <footer className="border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500 dark:text-slate-400">
-          © {new Date().getFullYear()} TaskTrack Pro. All rights reserved.
+          © {new Date().getFullYear()} Created by Tajri Ramal Muzi.
         </div>
       </footer>
     </div>

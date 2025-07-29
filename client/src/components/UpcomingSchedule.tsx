@@ -3,28 +3,52 @@ import type { Task } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays } from "lucide-react";
-import { format, isWithinInterval, addDays } from "date-fns";
+import { format, isWithinInterval, addDays, startOfDay, endOfDay } from "date-fns";
 
 export default function UpcomingSchedule() {
   const { data: tasks = [] } = useQuery<Task[]>({
     queryKey: ["/api/tasks"],
   });
 
-  // Filter tugas yang memiliki due date dalam 7 hari ke depan dan belum selesai
+  // --- LOGGING UNTUK DEBUGGING ---
+  console.log("--- Memeriksa Jadwal Mendatang ---");
+  console.log("Semua tugas yang diterima dari server:", tasks);
+  const now = startOfDay(new Date());
+  const sevenDaysFromNow = endOfDay(addDays(now, 6));
+  console.log("Rentang waktu yang diperiksa:", { start: now, end: sevenDaysFromNow });
+
   const upcomingTasks = tasks
     .filter(task => {
-      if (!task.dueDate || task.completed) {
+      if (task.completed || !task.dueDate) {
         return false;
       }
-      const now = new Date();
-      const sevenDaysFromNow = addDays(now, 7);
-      return isWithinInterval(new Date(task.dueDate), { start: now, end: sevenDaysFromNow });
+      
+      const taskDueDate = startOfDay(new Date(task.dueDate));
+      const isUpcoming = isWithinInterval(taskDueDate, {
+        start: now,
+        end: sevenDaysFromNow
+      });
+
+      // Log untuk setiap tugas yang diperiksa
+      console.log(
+        `--> Memeriksa tugas "${task.title}":`, 
+        { 
+          "Tanggal Jatuh Tempo": taskDueDate, 
+          "Apakah Termasuk?": isUpcoming 
+        }
+      );
+
+      return isUpcoming;
     })
-    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime()) // Urutkan berdasarkan yang paling dekat
-    .slice(0, 5); // Tampilkan maksimal 5
+    .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+    .slice(0, 5);
+  
+  console.log("Hasil akhir (tugas yang akan ditampilkan):", upcomingTasks);
+  console.log("--- Pemeriksaan Selesai ---");
+
 
   const getPriorityColor = (priority: string) => {
-    switch (priority) {
+    switch (priority.toLowerCase()) {
       case "high": return "destructive";
       case "medium": return "warning";
       default: return "secondary";
